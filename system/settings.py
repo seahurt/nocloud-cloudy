@@ -1,7 +1,11 @@
+import os
 
-Ubuntu = '/cifs/webvirtmgr/cloud-images/ubuntu.base.img'
 
-CentOS = '/cifs/webvirtmgr/cloud-images/centos.base.img'
+BASE_URL = '/kvm/'
+
+Ubuntu = os.path.join(BASE_URL, 'cloud-images/ubuntu.base.img')
+
+CentOS = os.path.join(BASE_URL, 'cloud-images/centos.base.img')
 
 SEED_CMD = '/usr/bin/genisoimage -output {seed_path} -volid cidata -joliet -rock {meta_data_path} {user_data_path}'
 
@@ -13,12 +17,12 @@ VM_CMD = '/usr/bin/virt-install --import --name={name} --ram={mem} \
 --network bridge=br0,model=virtio \
 --os-type=linux --noautoconsole'
 
-IMG_PATH = '/cifs/webvirtmgr/vms/{name}.img'
-SEED_PATH = '/cifs/webvirtmgr/vms/{name}.seed.iso'
+IMG_PATH = os.path.join(BASE_URL, 'vms/{name}.img')
+SEED_PATH = os.path.join(BASE_URL, 'vms/{name}.seed.iso')
 
 
-META_DATA = '/cifs/webvirtmgr/metadata/{name}/meta-data'
-USER_DATA = '/cifs/webvirtmgr/metadata/{name}/user-data'
+META_DATA = os.path.join(BASE_URL, 'metadata/{name}/meta-data')
+USER_DATA = os.path.join(BASE_URL, 'metadata/{name}/user-data')
 
 
-NETWORK_ID = '172.17.50'
+NETWORK_ID = '192.168.100'
