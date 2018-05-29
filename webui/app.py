@@ -30,7 +30,7 @@ def main():
         sshkey = req.get('sshkey')
         passwd = req.get('pass')
         os = req.get('type')
-        expire = req.get('expire').capitalize()
+        expire = True if req.get('expire') == 'true' else False
         data = {
             'name': name,
             'ip': ip,
@@ -44,7 +44,7 @@ def main():
             'os': os,
             'expire': expire
         }
-        cmd = makeCmd(ip=ip, name=name, dns=dns, disk=disk, mem=mem, hostname=hostname, sshkey=sshkey,
+        cmd = makeCmd(ip=ip, name=name, dns=dns, disk=disk + 'G', mem=mem, hostname=hostname, sshkey=sshkey,
                       passwd=passwd, ostype=os, expire=expire, cpu=cpu)
         print(cmd)
         return Response(json.dumps({'success': True, 'data': data, 'cmd': cmd}), mimetype='application/json')
