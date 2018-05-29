@@ -82,7 +82,7 @@
     var vm = new Vue({
         el:'#app',
         data(){
-            var validIP = (rule, value, callback) => {
+            var validIP = (rule,value,callback) => {
                 var re = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/;
                 if(re.test(value)){
                     callback();
@@ -111,7 +111,7 @@
             };
                 return {
                     form:{
-                        ip: '192.168.1.',
+                        ip: '{{netid}}',
                         disk: '10',
                         mem: '1024',
                         vcpu: '1',
@@ -181,9 +181,13 @@
                 axios.post('/', param).then(
                     response=>{
                         console.log(response.data);
+                        if (!response.data.success){
+                            this.$message.error(response.data.reason);
+                        }else{
+                            this.$message.success('创建成功！');
+                        }
                     }
                 )
-
             },
             resetForm() {
                 this.$refs.form1.resetFields();
