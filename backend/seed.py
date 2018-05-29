@@ -52,8 +52,10 @@ def createUserData(file, passwd, expire, sshkey):
         # uf.write('ssh_pwauth: True\n')
     cmd.append('echo "ssh_pwauth: True" >>%s' % file)
     if sshkey:
-        cmd.append('echo "sh_authorized_keys:" >>%s' % file)
-        cmd.append('echo "  - %s" >>%s' % file)
+        #cmd.append('echo "users:" >>%s' % file)
+        #cmd.append('echo "  - default" >>%s' % file)
+        cmd.append('echo "ssh_authorized_keys:" >>%s' % file)
+        cmd.append('echo "  - %s" >>%s' % (sshkey, file))
         #     uf.write('sh_authorized_keys:\n')
         #     uf.write('  - %s\n' % sshkey)
     return ' && '.join(cmd)

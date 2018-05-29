@@ -1,9 +1,12 @@
+import os
 from os import path
+import sys
 from flask import Flask
 from flask import render_template
 from flask import request, Response
 import json
-from backend.main import makeCmd
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+from backend.main import *
 from system import settings
 from backend import vm, main, img
 
@@ -29,7 +32,7 @@ def main():
         hostname = req.get('hostname')
         sshkey = req.get('sshkey')
         passwd = req.get('pass')
-        os = req.get('type')
+        ostype = req.get('type')
         expire = True if req.get('expire') == 'true' else False
         data = {
             'name': name,
@@ -41,16 +44,17 @@ def main():
             'hostname': hostname,
             'sshkey': sshkey,
             'passwd': passwd,
-            'os': os,
+            'os': ostype,
             'expire': expire
         }
         cmd = makeCmd(ip=ip, name=name, dns=dns, disk=disk + 'G', mem=mem, hostname=hostname, sshkey=sshkey,
-                      passwd=passwd, ostype=os, expire=expire, cpu=cpu)
+                      passwd=passwd, ostype=ostype, expire=expire, cpu=cpu)
         print(cmd)
+        os.system(cmd)
         return Response(json.dumps({'success': True, 'data': data, 'cmd': cmd}), mimetype='application/json')
 
 
 if __name__ == '__main__':
     app.debug = True    
-    app.run()
+    app.run(host='0.0.0.0')
 
