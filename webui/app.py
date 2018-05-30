@@ -1,14 +1,12 @@
 import os
-from os import path
 import sys
 from flask import Flask
 from flask import render_template
 from flask import request, Response
 import json
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from backend.main import *
+from backend import main
 from system import settings
-from backend import vm, main, img
 
 
 app = Flask(__name__)
@@ -22,7 +20,7 @@ def main():
         print(request.form)
         req = request.form
         name = req.get('name')
-        if path.exists(settings.IMG_PATH.format(name=name)):
+        if os.path.exists(settings.IMG_PATH.format(name=name)):
             return Response(json.dumps({'success': False, 'reason': '标识符已经存在！'}), mimetype='application/json')
         ip = req.get('ip')
         dns = req.get('dns')
@@ -47,8 +45,8 @@ def main():
             'os': ostype,
             'expire': expire
         }
-        cmd = makeCmd(ip=ip, name=name, dns=dns, disk=disk + 'G', mem=mem, hostname=hostname, sshkey=sshkey,
-                      passwd=passwd, ostype=ostype, expire=expire, cpu=cpu)
+        cmd = main.makeCmd(ip=ip, name=name, dns=dns, disk=disk + 'G', mem=mem, hostname=hostname, sshkey=sshkey,
+                           passwd=passwd, ostype=ostype, expire=expire, cpu=cpu)
         print(cmd)
         os.system(cmd)
         return Response(json.dumps({'success': True, 'data': data, 'cmd': cmd}), mimetype='application/json')
