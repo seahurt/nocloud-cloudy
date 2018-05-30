@@ -62,7 +62,9 @@ def createUserData(file, passwd, expire, sshkey):
 
 
 def createSeed(name, ip, dns='114.114.114.114', ostype='ubuntu', passwd='passw0rd', expire=True, hostname=None, sshkey=None):
-    iface_name = 'ens3' if ostype == 'ubuntu' else 'eth0'
+    iface_name = settings.INTERFACE_MAP.get(ostype)
+    if not iface_name:
+        raise ValueError('OStype %s not supported!' % ostype)
     meta_data_file = settings.META_DATA.format(name=name)
     user_data_file = settings.USER_DATA.format(name=name)
     cmd_1 = createMeta(meta_data_file, ip, dns, hostname, iface_name)

@@ -5,7 +5,7 @@ from flask import render_template
 from flask import request, Response
 import json
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from backend import main
+from backend import create
 from system import settings
 
 
@@ -15,7 +15,7 @@ app = Flask(__name__)
 @app.route('/', methods=['GET', 'POST'])
 def main():
     if request.method == 'GET':
-        return render_template('main.html', netid=settings.NETWORK_ID)
+        return render_template('main.html', netid=settings.NETWORK_ID, ostypes=json.dumps(settings.IMG_MAP))
     else:
         print(request.form)
         req = request.form
@@ -45,10 +45,11 @@ def main():
             'os': ostype,
             'expire': expire
         }
-        cmd = main.makeCmd(ip=ip, name=name, dns=dns, disk=disk + 'G', mem=mem, hostname=hostname, sshkey=sshkey,
-                           passwd=passwd, ostype=ostype, expire=expire, cpu=cpu)
+        cmd = create.makeCmd(ip=ip, name=name, dns=dns, disk=disk + 'G', mem=mem, hostname=hostname, sshkey=sshkey,
+                             passwd=passwd, ostype=ostype, expire=expire, cpu=cpu)
         print(cmd)
-        os.system(cmd)
+        if not settings.DEBUG:
+            os.system(cmd)
         return Response(json.dumps({'success': True, 'data': data, 'cmd': cmd}), mimetype='application/json')
 
 
