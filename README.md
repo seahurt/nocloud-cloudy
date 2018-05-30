@@ -47,7 +47,7 @@ sudo python run.py  # 需要用root权限，或者将当前用户添加到libvir
 # Useage
 ```
 Visit http://<your-ip>:8888
-``` 
+```
 
 # ISSUES
 ```
@@ -56,5 +56,5 @@ centos的cloud镜像默认的网卡为eth0
 如果你的镜像不是这样，那么请修改settings中的INTERFACE_MAP
 ```
 
-#screenshot
+# screenshot
 ![screenshot](screenshot/img.jpg)
