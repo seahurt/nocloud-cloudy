@@ -1,8 +1,14 @@
-# nocloud-cloudy
+# nocloud-cloudy dev
 本程序用于在单台服务器上设置KVM虚拟机, 通过网页界面方便的设置参数并启动虚拟机。
 
+## Update
+```
+1. rewrite with libvirt-python
+2. add db to store machine data
+3. add more management function
+```
 
-# First step: prepare your server
+## First step: prepare your server
 1. Ubuntu
 ```
 # Ubuntu
@@ -29,14 +35,14 @@ ubuntu 16.04: http://mirrors.ustc.edu.cn/ubuntu-cloud-images/xenial/current/xeni
 6. Done
 ```
 
-# Config
+## Config
 ```
 更改system/settings.py里面的信息，主要更改的有BASE_URL, NETWORK_ID, DEBUG
 默认的DEBUG设为True，这时网页POST的数据并不会真的运行，只会在后台打印命令，可以先把这些命令运行一下，看是否能够成功开启虚拟机，
 如果可以，把DEBUG设为False， 重新运行python run.py，就可以直接从网页上创建虚拟机了
 ```
 
-# Setup Web Server
+## Setup Web Server
 ```
 git clone <this repo>
 cd nocloud-cloudy
@@ -44,17 +50,17 @@ pip install -r requirements.txt
 sudo python run.py  # 需要用root权限，或者将当前用户添加到libvirtd组中
 ```
 
-# Useage
+## Useage
 ```
 Visit http://<your-ip>:8888
 ```
 
-# ISSUES
+## ISSUES
 ```
 ubuntu的cloud镜相默认的网卡为ens3
 centos的cloud镜像默认的网卡为eth0
 如果你的镜像不是这样，那么请修改settings中的INTERFACE_MAP
 ```
 
-# screenshot
+## screenshot
 ![screenshot](screenshot/img.jpg)
