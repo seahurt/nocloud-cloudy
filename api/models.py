@@ -12,16 +12,40 @@ class User(AbstractUser):
         ordering = ['id']
 
 
+def add_cpu(x, y):
+    return x.cpu + y.cpu
+
+
+def add_mem(x, y):
+    return x.mem + y.mem
+
+
+def add_disk(x, y):
+    return x.disk + y.disk
+
+
 class Host(models.Model):
-    name = models.CharField()
+    name = models.CharField(max_length=50)
     cpu = models.PositiveSmallIntegerField('Total CPU Core', default=1)
-    cpu_available = models.PositiveSmallIntegerField('Total CPU Core', default=0)
     mem = models.PositiveIntegerField('Total Memory Size(MB)', default=1024)
-    mem_available = models.PositiveIntegerField('Total Memory Size(MB)', default=0)
+    # mem_available = models.PositiveIntegerField('Total Memory Size(MB)', default=0)
     disk = models.PositiveIntegerField('Total Disk Size(GB)', default=10)
-    disk_available = models.PositiveIntegerField('Total Disk Size(GB)', default=0)
+    # disk_available = models.PositiveIntegerField('Total Disk Size(GB)', default=0)
     created_date = models.DateTimeField(auto_now_add=True)
     last_update = models.DateTimeField(auto_now=True)
+    interface = models.ManyToManyField('Interface')
+
+    def cpu_available(self):
+        return self.cpu - sum(map(lambda x: x.cpu, self.vhost_set.all()))
+
+    def mem_available(self):
+        return self.mem - sum(map(lambda x: x.mem, self.vhost_set.all()))
+
+    def disk_available(self):
+        return self.disk - sum(map(lambda x: x.disk, self.vhost_set.all()))
+
+    def default_interface(self):
+        return self.interface.filter(default=True)
 
 
 class Vhost(models.Model):
@@ -34,14 +58,15 @@ class Vhost(models.Model):
     disk_size = models.PositiveIntegerField('Disk Size (GB)', default=10)
     password_expire = models.BooleanField('Passreset on First Boot', default=False)
     hostname = models.CharField(max_length=30, default='localhost')
-    dns1 = models.IPAddressField(default='114.114.114.114')
-    dns2 = models.IPAddressField(default='223.5.5.5')
+    dns1 = models.GenericIPAddressField(default='114.114.114.114')
+    dns2 = models.GenericIPAddressField(default='223.5.5.5')
     status = models.CharField(max_length=15)  # created, start, shutdown, restart
     host = models.ForeignKey(Host, on_delete=models.PROTECT)
     image = models.ForeignKey('Images', on_delete=models.PROTECT)
     creator = models.ForeignKey(User, on_delete=models.PROTECT)
     created_date = models.DateTimeField(auto_now_add=True)
     last_update = models.DateTimeField(auto_now=True)
+    interface = models.ManyToManyField('Interface')
 
     @property
     def vm_dir(self):
@@ -79,7 +104,7 @@ class Vhost(models.Model):
 
     @property
     def default_interface(self):
-        return self.interface_set.get(default=True)
+        return self.interface.get(default=True)
 
     @property
     def default_ip(self):
@@ -131,7 +156,7 @@ class Images(models.Model):
     os_type = models.CharField(max_length=15)
     os_version = models.CharField(max_length=20)
     os_var = models.CharField(max_length=30)
-    image_path = models.FilePathField()
+    image_path = models.CharField(max_length=128)
     username = models.CharField(max_length=30)
     creator = models.ForeignKey(User, on_delete=models.PROTECT)
     created_date = models.DateTimeField(auto_now_add=True)
@@ -141,33 +166,53 @@ class Images(models.Model):
 
 
 class IP(models.Model):
-    address = models.IPAddressField(unique=True)
-    mask = models.IPAddressField(default='255.255.255.0')
-    gateway = models.IPAddressField()
-    network = models.IPAddressField()
-    broadcast = models.IPAddressField()
+    address = models.GenericIPAddressField(unique=True)
+    mask = models.GenericIPAddressField(default='255.255.255.0')
+    gateway = models.GenericIPAddressField()
+    network = models.GenericIPAddressField()
+    broadcast = models.GenericIPAddressField()
     pool = models.ForeignKey('IPPool', on_delete=models.CASCADE)
-    interface = models.OneToOneField('Interface', on_delete=models.SET_NULL, null=True)
+    interface = models.OneToOneField('Interface', on_delete=models.CASCADE)
     creator = models.ForeignKey(User, on_delete=models.PROTECT)
     created_date = models.DateTimeField(auto_now_add=True)
     last_update = models.DateTimeField(auto_now=True)
 
 
 class IPPool(models.Model):
-    mask = models.IPAddressField(default='255.255.255.0')
-    network = models.IPAddressField()
+    name = models.CharField(max_length=50, default='default')
+    mask = models.GenericIPAddressField(default='255.255.255.0')
+    network = models.GenericIPAddressField()
     ip_start = models.PositiveSmallIntegerField(default=1)
     ip_end = models.PositiveSmallIntegerField(default=254)
     creator = models.ForeignKey(User, on_delete=models.PROTECT)
     created_date = models.DateTimeField(auto_now_add=True)
     last_update = models.DateTimeField(auto_now=True)
 
+    @property
+    def total_ip(self):
+        return self.ip_end - self.ip_start + 1
+
+    @property
+    def used_ip(self):
+        return self.ip_set.count()
+
+    @property
+    def available_ip(self):
+        return self.total_ip - self.used_ip
+
 
 class Interface(models.Model):
     mac = models.CharField(max_length=17, unique=True, null=True)
-    vhost = models.ForeignKey('Vhost', on_delete=models.CASCADE, null=True)
-    host = models.ForeignKey('Vhost', on_delete=models.CASCADE, null=True)
     creator = models.ForeignKey(User, on_delete=models.PROTECT)
     created_date = models.DateTimeField(auto_now_add=True)
     last_update = models.DateTimeField(auto_now=True)
-    default = models.BooleanField()
+    default = models.BooleanField(default=True)
+
+    def machine(self):
+        if self.vhost:
+            return self.vhost.name
+        elif self.host:
+            return self.host.name
+        else:
+            return 'UNKNOWN'
+
